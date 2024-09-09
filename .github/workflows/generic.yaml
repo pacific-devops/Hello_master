@@ -2,6 +2,11 @@ name: Repository Creation Task
 
 on:
   workflow_call:
+   inputs:
+    domain:
+        required: false
+        type: boolean
+        default: false
    outputs:
     generic_repo:
         description: 'The name of the JFrog release repository created'
