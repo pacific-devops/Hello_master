@@ -5,7 +5,7 @@ on:
   workflow_call:
     inputs:
       domain:
-        description: "Domain selected by the user (e.g., JQRS)"
+        description: "Domain selected by the user (e.g.,JQRS)"
         required: true
         type: string
 
