@@ -23,7 +23,7 @@ jobs:
       run: |
        actor="${{ github.actor }}"  # The user to check
        org="pacific-devops"  # Your organization name
-       team_slug="${inputs.domain}-developer"  # The team slug
+       team_slug="${{inputs.domain}}-developer"  # The team slug
 
        # Make the API call to list team members
        response=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
