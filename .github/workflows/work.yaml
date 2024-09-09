@@ -1,0 +1,13 @@
+name: Generic Upload
+on:  [push]
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  file-check:
+    uses: pacific-devops/Hello_testing/.github/workflows/resuable-workflow.yaml@main
+    with:
+      technology: 'generic'  # Pass the technology input
+      team: 'pacific'  # Pass the team input
