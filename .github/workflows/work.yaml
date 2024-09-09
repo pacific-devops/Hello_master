@@ -9,6 +9,6 @@ jobs:
   file-check:
     uses: pacific-devops/resuable/.github/workflows/resuable-workflow.yaml@main
     with:
-      technology: 'generic'  # Pass the technology input
+      package: 'generic'  # Pass the technology input
       team: 'pacific'  # Pass the team input
       domain: 'dmagic'
