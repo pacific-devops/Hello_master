@@ -1,0 +1,53 @@
+name: Repository Creation Task
+
+on:
+  workflow_call:
+   outputs:
+    generic_repo:
+        description: 'The name of the JFrog release repository created'
+        value: ${{ jobs.create-repo.outputs.generic_repo_name }}
+
+jobs:
+  create-repo:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      generic_repo_name: ${{ steps.create_generic_repo.outputs.repo }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        repository: Pacificdubey/resuable-workflow  # Checkout reusable workflow repository
+        ref: main  # Branch reference
+    - name: JFrog Setup
+      id: setup-cli
+      uses: jfrog/setup-jfrog-cli@v4.2.2
+      env:
+        JF_URL: ${{ vars.JF_URL }} # This should be the base URL of your Artifactory
+      with:
+        oidc-provider-name: gittest
+        oidc-audience: git-aud
+    - name: Extract Branch Name
+      run: |
+        BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
+        echo "repository=$(echo $BRANCH_NAME | sed 's/\//-/g')" >> $GITHUB_ENV
+        echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+# Create Generic Repo
+    - name: Check and Create Repository
+      id: create_generic_repo
+      run: |
+        REPO_NAME=${{ env.repository }}-generic
+        API_URL="/api/repositories/${REPO_NAME}"
+        # Fetch the repository and capture the HTTP status code
+        RESPONSE=$(jfrog rt curl -X GET "$API_URL" || true)
+        echo "$RESPONSE"
+        if echo "$RESPONSE" | grep -q '"key"'; then
+            echo "Repository exists: $REPO_NAME"
+        else
+           echo "Repository does not exist"
+           jfrog rt rc template/generic-repo-template.json --vars repo=$REPO_NAME
+        fi
+        echo "repo=$REPO_NAME" >> $GITHUB_OUTPUT
