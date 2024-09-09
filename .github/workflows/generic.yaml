@@ -26,19 +26,20 @@ jobs:
        team_slug="jira-developer"  # Example team slug
 
        # Make the API call to check team membership
-       response=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-       https://api.github.com/orgs/$org/teams/$team_slug/memberships/$actor)
+        response=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+         https://api.github.com/orgs/$org/teams/$team_slug/memberships/$actor)
 
-       # Print the entire response for debugging
-       echo "API Response: $response"
-    
-       membership_state=$(echo $response | jq -r '.state')
+        # Print the entire response for debugging (optional)
+        echo "API Response: $response"
 
-       if [[ "$membership_state" != "active" ]]; then
+        # Extract the role from the response
+       membership_role=$(echo $response | jq -r '.role')
+
+        if [[ "$membership_role" == "member" || "$membership_role" == "maintainer" ]]; then
+       echo "$actor is part of the $team_slug team with role: $membership_role. Proceeding."
+        echo "is_member=true" >> $GITHUB_ENV
+       else
         echo "$actor is not a member of the $team_slug team, aborting."
         echo "is_member=false" >> $GITHUB_ENV
         exit 1
-       else
-        echo "$actor is an active member of the $team_slug team."
-        echo "is_member=true" >> $GITHUB_ENV
        fi
