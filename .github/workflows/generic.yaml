@@ -19,25 +19,20 @@ jobs:
   check-and-deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Set team slug based on domain input
+    - name: Set repository and user variables
       run: |
-        domain="${{ inputs.domain }}"
-        team_slug="${domain}-developer"
-        echo "Team slug set to: $team_slug"
-        echo "team_slug=$team_slug" >> $GITHUB_ENV
+        repo_full_name="${{ github.repository }}"  # Automatically gets owner/repo
+        owner=$(echo $repo_full_name | cut -d'/' -f1)
+        repo=$(echo $repo_full_name | cut -d'/' -f2)
+        actor="${{ github.actor }}"  # The user who triggered the workflow
+        echo "owner=$owner" >> $GITHUB_ENV
+        echo "repo=$repo" >> $GITHUB_ENV
+        echo "actor=$actor" >> $GITHUB_ENV
 
-    - name: Check if user is part of the selected team
-      id: check_team_membership
+    - name: List teams with access to the repository
       run: |
-        org="pacific-devops"
-        response=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-        https://api.github.com/orgs/$org/teams)
+        response=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+        https://api.github.com/repos/$owner/$repo/teams)
 
-        echo "Teams in the organization:"
+        echo "Teams with access to the repository:"
         echo $response | jq '.'
-
-    - name: Deploy artifacts to JFrog
-      if: env.is_member == 'true'
-      run: |
-        domain="${{ inputs.domain }}"
-        jf rt upload --repo=my-jfrog-repo/$domain --url=$JF_URL
