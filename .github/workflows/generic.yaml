@@ -21,27 +21,24 @@ jobs:
     steps:
     - name: Set domain and team variables
       run: |
-        domain="${{ inputs.domain }}"
-        team_slug="${domain}-developer"  # Construct the team slug dynamically
-        actor="${{ github.actor }}"  # The user who triggered the workflow
-        org="your-org-name"  # Replace with your organization name
+       actor="${{ github.actor }}"  # The user who triggered the workflow
+       org="your-org-name"  # Replace with your organization name
+       team_slug="jira-developer"  # Example team slug
 
-        echo "Checking if $actor is part of the $team_slug team."
-        echo "domain=$domain" >> $GITHUB_ENV
-        echo "team_slug=$team_slug" >> $GITHUB_ENV
-        echo "actor=$actor" >> $GITHUB_ENV
-        echo "org=$org" >> $GITHUB_ENV
+       # Make the API call to check team membership
+       response=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+       https://api.github.com/orgs/$org/teams/$team_slug/memberships/$actor)
 
-    - name: Check if user is part of the team
-      run: |
-        response=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-        https://api.github.com/orgs/$org/teams/$team_slug/memberships/$actor)
+       # Print the entire response for debugging
+       echo "API Response: $response"
+    
+       membership_state=$(echo $response | jq -r '.state')
 
-        membership_state=$(echo $response | jq -r '.state')
-
-        if [[ "$membership_state" != "active" ]]; then
-          echo "$actor is not a member of the $team_slug team, aborting."
-          exit 1
-        else
-          echo "$actor is an active member of the $team_slug team, proceeding with deployment."
-        fi
+       if [[ "$membership_state" != "active" ]]; then
+        echo "$actor is not a member of the $team_slug team, aborting."
+        echo "is_member=false" >> $GITHUB_ENV
+        exit 1
+       else
+        echo "$actor is an active member of the $team_slug team."
+        echo "is_member=true" >> $GITHUB_ENV
+       fi
