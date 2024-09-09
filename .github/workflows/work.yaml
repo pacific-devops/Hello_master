@@ -7,7 +7,7 @@ permissions:
 
 jobs:
   file-check:
-    uses: pacific-devops/Hello_testing/.github/workflows/resuable-workflow.yaml@main
+    uses: pacific-devops/resuable/.github/workflows/resuable-workflow.yaml@main
     with:
       technology: 'generic'  # Pass the technology input
       team: 'pacific'  # Pass the team input
