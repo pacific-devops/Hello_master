@@ -1,10 +1,11 @@
 # .github/workflows/deploy-caller.yml
 name: Deploy Caller
 
-on:
-  push:
-    branches:
-      - main
+on: 
+  workflow_call:
+  #push:
+   # branches:
+    #  - main
       
 permissions:
   contents: read
