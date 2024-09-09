@@ -1,58 +1,47 @@
-name: Repository Creation Task
+# .github/workflows/deploy-reusable.yml
+name: Deploy Reusable Workflow
 
 on:
   workflow_call:
-   inputs:
-    domain:
-        required: false
-        type: boolean
-        default: false
-   outputs:
-    generic_repo:
-        description: 'The name of the JFrog release repository created'
-        value: ${{ jobs.create-repo.outputs.generic_repo_name }}
+    inputs:
+      domain:
+        description: "Domain selected by the user (e.g., JQRS)"
+        required: true
+        type: string
 
 jobs:
-  create-repo:
+  check-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    outputs:
-      generic_repo_name: ${{ steps.create_generic_repo.outputs.repo }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        repository: Pacificdubey/resuable-workflow  # Checkout reusable workflow repository
-        ref: main  # Branch reference
-    - name: JFrog Setup
-      id: setup-cli
-      uses: jfrog/setup-jfrog-cli@v4.2.2
-      env:
-        JF_URL: ${{ vars.JF_URL }} # This should be the base URL of your Artifactory
-      with:
-        oidc-provider-name: gittest
-        oidc-audience: git-aud
-    - name: Extract Branch Name
+    - name: Set team slug based on domain input
       run: |
-        BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
-        echo "repository=$(echo $BRANCH_NAME | sed 's/\//-/g')" >> $GITHUB_ENV
-        echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+        domain="${{ inputs.domain }}"
+        team_slug="${domain}-developer"
+        echo "Team slug set to: $team_slug"
+        echo "team_slug=$team_slug" >> $GITHUB_ENV
 
-# Create Generic Repo
-    - name: Check and Create Repository
-      id: create_generic_repo
+    - name: Check if user is part of the selected team
+      id: check_team_membership
       run: |
-        REPO_NAME=${{ env.repository }}-generic
-        API_URL="/api/repositories/${REPO_NAME}"
-        # Fetch the repository and capture the HTTP status code
-        RESPONSE=$(jfrog rt curl -X GET "$API_URL" || true)
-        echo "$RESPONSE"
-        if echo "$RESPONSE" | grep -q '"key"'; then
-            echo "Repository exists: $REPO_NAME"
+        user=${{ github.actor }}
+        team_slug=$team_slug
+        org="pacific-devops"
+
+        response=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+        https://api.github.com/orgs/$org/teams/$team_slug/memberships/$user)
+
+        membership_state=$(echo $response | jq -r '.state')
+
+        if [[ "$membership_state" != "active" ]]; then
+          echo "$user is not a member of the $team_slug team, aborting."
+          echo "is_member=false" >> $GITHUB_ENV
         else
-           echo "Repository does not exist"
-           jfrog rt rc template/generic-repo-template.json --vars repo=$REPO_NAME
+          echo "$user is an active member of the $team_slug team, proceeding with deployment."
+          echo "is_member=true" >> $GITHUB_ENV
         fi
-        echo "repo=$REPO_NAME" >> $GITHUB_OUTPUT
+
+    - name: Deploy artifacts to JFrog
+      if: env.is_member == 'true'
+      run: |
+        domain="${{ inputs.domain }}"
+        jf rt upload --repo=my-jfrog-repo/$domain --url=$JF_URL
