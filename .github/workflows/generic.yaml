@@ -21,7 +21,7 @@ jobs:
     steps:
     - name: Set domain and team variables
       run: |
-       actor="Pardomain"  # The user to check
+       actor="${{ github.actor }}"  # The user to check
        org="pacific-devops"  # Your organization name
        team_slug="${domain}-developer"  # The team slug
 
