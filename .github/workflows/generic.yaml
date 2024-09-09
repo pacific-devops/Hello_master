@@ -1,4 +1,4 @@
-# .github/workflows/deploy-reusable.yaml
+# .github/workflows/deploy-reusable.yamls
 name: Deploy Reusable Workflow
 
 on:
