@@ -21,11 +21,21 @@ jobs:
     steps:
     - name: Set domain and team variables
       run: |
-        org="pacific-devops"  # Organization name
-        team_slug="jira-developer"  # Use the correct slug from the previous step
+       actor="Pardomain"  # The user to check
+       org="pacific-devops"  # Your organization name
+       team_slug="jira-developer"  # The team slug
 
-        response=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+       # Make the API call to list team members
+       response=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
         https://api.github.com/orgs/$org/teams/$team_slug/members)
 
-         # Print the entire response
-        echo "Team Members: $response"
+        # Check if the user is part of the team by searching for their login
+        is_member=$(echo $response | jq --arg actor "$actor" '.[] | select(.login == $actor)')
+
+       if [ -z "$is_member" ]; then
+        echo "$actor is not part of the $team_slug team, aborting."
+        exit 1
+       else
+        echo "$actor is part of the $team_slug team, proceeding."
+        echo "is_member=true" >> $GITHUB_ENV
+       fi
