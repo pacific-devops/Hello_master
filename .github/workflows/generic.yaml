@@ -19,28 +19,16 @@ jobs:
   check-and-deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Verify if GH_PAT is set correctly
-      run: |
-        if [ -z "${{ secrets.GH_PAT }}" ]; then
-          echo "The GH_PAT secret is not set!"
-          exit 1
-        else
-          echo "GH_PAT secret is accessible."
-        fi
-    - name: Set repository and user variables
-      run: |
-        repo_full_name="${{ github.repository }}"  # Automatically gets owner/repo
-        owner=$(echo $repo_full_name | cut -d'/' -f1)
-        repo=$(echo $repo_full_name | cut -d'/' -f2)
-        actor="${{ github.actor }}"  # The user who triggered the workflow
-        echo "owner=$owner" >> $GITHUB_ENV
-        echo "repo=$repo" >> $GITHUB_ENV
-        echo "actor=$actor" >> $GITHUB_ENV
+     - name: Set organization name
+       run: |
+        org_name="pacific-devops"  # Replace with your organization name
+        echo "org_name=$org_name" >> $GITHUB_ENV
 
-    - name: List teams with access to the repository
-      run: |
+     - name: List all teams at the organization level
+       run: |
+        org="${{ env.org_name }}"
         response=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-        https://api.github.com/repos/$owner/$repo/teams)
+        https://api.github.com/orgs/$org/teams)
 
-        echo "Teams with access to the repository:"
+        echo "Teams in the organization:"
         echo $response | jq '.'
