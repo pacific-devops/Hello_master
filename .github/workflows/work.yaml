@@ -11,3 +11,4 @@ jobs:
     with:
       technology: 'generic'  # Pass the technology input
       team: 'pacific'  # Pass the team input
+      domain: 'dmagic'
