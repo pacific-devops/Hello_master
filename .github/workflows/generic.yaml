@@ -21,25 +21,13 @@ jobs:
     steps:
     - name: Set domain and team variables
       run: |
-       actor="${{ github.actor }}"  # The user who triggered the workflow
-       org="your-org-name"  # Replace with your organization name
-       team_slug="jira-developer"  # Example team slug
+        actor="${{ github.actor }}"  # The user who triggered the workflow
+        org="your-org-name"  # Replace with your organization name
+        team_slug="jira-developer"  # Replace with your actual team slug
 
-       # Make the API call to check team membership
+        # List all members of the team
         response=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-         https://api.github.com/orgs/$org/teams/$team_slug/memberships/$actor)
+         https://api.github.com/orgs/$org/teams/$team_slug/members)
 
-        # Print the entire response for debugging (optional)
-        echo "API Response: $response"
-
-        # Extract the role from the response
-       membership_role=$(echo $response | jq -r '.role')
-
-        if [[ "$membership_role" == "member" || "$membership_role" == "maintainer" ]]; then
-       echo "$actor is part of the $team_slug team with role: $membership_role. Proceeding."
-        echo "is_member=true" >> $GITHUB_ENV
-       else
-        echo "$actor is not a member of the $team_slug team, aborting."
-        echo "is_member=false" >> $GITHUB_ENV
-        exit 1
-       fi
+        # Print the entire response
+        echo "Team Members: $response"
