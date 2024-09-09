@@ -19,6 +19,14 @@ jobs:
   check-and-deploy:
     runs-on: ubuntu-latest
     steps:
+    - name: Verify if GH_PAT is set correctly
+      run: |
+        if [ -z "${{ secrets.GH_PAT }}" ]; then
+          echo "The GH_PAT secret is not set!"
+          exit 1
+        else
+          echo "GH_PAT secret is accessible."
+        fi
     - name: Set repository and user variables
       run: |
         repo_full_name="${{ github.repository }}"  # Automatically gets owner/repo
