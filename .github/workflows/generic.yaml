@@ -19,16 +19,29 @@ jobs:
   check-and-deploy:
     runs-on: ubuntu-latest
     steps:
-     - name: Set organization name
-       run: |
-        org_name="pacific-devops"  # Replace with your organization name
-        echo "org_name=$org_name" >> $GITHUB_ENV
+    - name: Set domain and team variables
+      run: |
+        domain="${{ inputs.domain }}"
+        team_slug="${domain}-developer"  # Construct the team slug dynamically
+        actor="${{ github.actor }}"  # The user who triggered the workflow
+        org="your-org-name"  # Replace with your organization name
 
-     - name: List all teams at the organization level
-       run: |
-        org="${{ env.org_name }}"
+        echo "Checking if $actor is part of the $team_slug team."
+        echo "domain=$domain" >> $GITHUB_ENV
+        echo "team_slug=$team_slug" >> $GITHUB_ENV
+        echo "actor=$actor" >> $GITHUB_ENV
+        echo "org=$org" >> $GITHUB_ENV
+
+    - name: Check if user is part of the team
+      run: |
         response=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-        https://api.github.com/orgs/$org/teams)
+        https://api.github.com/orgs/$org/teams/$team_slug/memberships/$actor)
 
-        echo "Teams in the organization:"
-        echo $response | jq '.'
+        membership_state=$(echo $response | jq -r '.state')
+
+        if [[ "$membership_state" != "active" ]]; then
+          echo "$actor is not a member of the $team_slug team, aborting."
+          exit 1
+        else
+          echo "$actor is an active member of the $team_slug team, proceeding with deployment."
+        fi
