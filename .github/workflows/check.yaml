@@ -16,5 +16,5 @@ jobs:
       uses: pacific-devops/resuable/.github/actions/jfrog-deploy@main
       with:
         package: "generic"
-        domain: "dsale"
+        domain: "dmagic"
         team: "team1"
