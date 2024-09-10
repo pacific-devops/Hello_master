@@ -1,0 +1,20 @@
+on:
+  [push]
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    
+    # Step 1: Checkout the main repository (this is done by default)
+    - name: Checkout main repository
+      uses: actions/checkout@v4
+
+    # Step 2: Run the composite action from the pacific-devops/jfrog-deploy-action repository
+    - name: Run JFrog deployment action from a different repo
+      uses: pacific-devops/resuable/.github/actions/jfrog-deploy@main
+      with:
+        package: "generic"
+        domain: "dsale"
+        team: "team1"
