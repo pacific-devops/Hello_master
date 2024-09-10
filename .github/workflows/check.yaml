@@ -18,3 +18,8 @@ jobs:
         package: 'generic'
         domain: 'dmagic'
         team: 'team1'
+      # Step 2: Output the values from the reusable action
+    - name: Print outputs from JFrog check action
+      run: |
+        echo "JFrog Repository: ${{ steps.check_action.outputs.jfrog_repo }}"
+        echo "Team: ${{ steps.check_action.outputs.team }}"
