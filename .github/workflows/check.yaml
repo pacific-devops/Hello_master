@@ -13,13 +13,15 @@ jobs:
 
     # Step 2: Run the composite action from the pacific-devops/jfrog-deploy-action repository
     - name: Run JFrog deployment action from a different repo
+      id: check_action
       uses: pacific-devops/resuable/.github/actions/jfrog-deploy@main
       with:
         package: 'generic'
         domain: 'dmagic'
         team: 'team1'
       # Step 2: Output the values from the reusable action
+      # Step 2: Output the values from the reusable action
     - name: Print outputs from JFrog check action
       run: |
-        echo "JFrog Repository: ${{ steps.check_action.outputs.jfrog_repo }}"
-        echo "Team: ${{ steps.check_action.outputs.team }}"
+          echo "JFrog Repository: ${{ steps.check_action.outputs.jfrog_repo }}"
+          echo "Team: ${{ steps.check_action.outputs.team }}"
