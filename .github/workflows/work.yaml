@@ -1,5 +1,6 @@
 name: Generic Upload
-on:  [push]
+on:  # [push]
+  workflow_call:
 
 permissions:
   id-token: write
