@@ -15,6 +15,6 @@ jobs:
     - name: Run JFrog deployment action from a different repo
       uses: pacific-devops/resuable/.github/actions/jfrog-deploy@main
       with:
-        package: "generic"
-        domain: "dmagic"
-        team: "team1"
+        package: 'generic'
+        domain: 'dmagic'
+        team: 'team1'
