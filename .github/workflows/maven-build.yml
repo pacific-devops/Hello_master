@@ -36,7 +36,7 @@ jobs:
       - name: Run Tests with Maven
         run: |
           cd myCalculator
-          mvn test
+          mvn clean test
       - name: Build with Maven and Generate JaCoCo Report
         run: |
           cd myCalculator
