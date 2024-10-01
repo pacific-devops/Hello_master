@@ -14,6 +14,7 @@
         <maven.test.skip>false</maven.test.skip>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <sonar.java.binaries>${project.build.directory}/classes</sonar.java.binaries>
     </properties>
 
     <!-- JUnit 5 Dependency -->
@@ -32,7 +33,7 @@
         </dependency>
     </dependencies>
 
-    <!-- Single Build Section -->
+    <!-- Build Section -->
     <build>
         <plugins>
             <!-- Maven Surefire Plugin for running tests -->
@@ -63,6 +64,13 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- Sonar Maven Plugin for SonarQube Analysis -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>4.0.0.4121</version>
             </plugin>
         </plugins>
     </build>
