@@ -37,3 +37,7 @@ jobs:
         run: |
           cd myCalculator
           mvn test
+      - name: Build with Maven and Generate JaCoCo Report
+        run: |
+          cd myCalculator
+          mvn clean verify # 'verify' will run tests and generate th
