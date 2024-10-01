@@ -1,0 +1,39 @@
+name: Java Maven Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code from the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up JDK 11 (you can change the version if necessary)
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+
+      # Step 4: Change directory to my-calculator and build the project
+      - name: Build with Maven
+        run: |
+          cd myCalculator
+          mvn clean install
+
+      # Step 5: Change directory to my-calculator and run tests
+      - name: Run Tests with Maven
+        run: |
+          cd myCalculator
+          mvn test
