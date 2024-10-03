@@ -7,14 +7,10 @@
     <artifactId>my-calculator</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <!-- Java Version -->
+    <!-- Java Version (Removed) -->
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.test.skip>false</maven.test.skip>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <sonar.java.binaries>${project.build.directory}/classes</sonar.java.binaries>
     </properties>
 
     <!-- JUnit 5 Dependency -->
@@ -66,12 +62,42 @@
                 </executions>
             </plugin>
 
-            <!-- Sonar Maven Plugin for SonarQube Analysis -->
+            <!-- SonarQube Maven Plugin for Static Code Analysis -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>4.0.0.4121</version>
+                <version>3.9.1.2184</version>
             </plugin>
         </plugins>
     </build>
+
+    <!-- Add Coverage Profile -->
+    <profiles>
+        <profile>
+            <id>coverage</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.8.7</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>report</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
