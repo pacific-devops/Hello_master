@@ -7,8 +7,10 @@
     <artifactId>my-calculator</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <!-- Java Version (Removed) -->
+    <!-- Set Java Version via Properties -->
     <properties>
+        <maven.compiler.source>1.7</maven.compiler.source> <!-- Set to Java 7 -->
+        <maven.compiler.target>1.7</maven.compiler.target> <!-- Set to Java 7 -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
