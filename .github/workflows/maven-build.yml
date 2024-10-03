@@ -58,3 +58,14 @@ jobs:
               -Dsonar.verbose=true \
               -Pcoverage -X
           }
+        # Check the Quality Gate status.
+      - name: SonarQube Quality Gate check
+        id: sonarqube-quality-gate-check
+        uses: sonarsource/sonarqube-quality-gate-action@v1.1.0
+        # Force to fail step after specific time.
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: "https://sonarcloud.io"
+        with:
+           scanMetadataReportFile: myCalculator/target/sonar/report-task.txt
