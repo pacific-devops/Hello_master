@@ -41,3 +41,20 @@ jobs:
         run: |
           cd myCalculator
           mvn clean verify # 'verify' will run tests and generate th
+      - name: SonarQube Scan Maven
+        id: execute-sonarqube-scan-maven
+        if: always()
+        run: |
+          # shellcheck disable=2086
+          {
+            cd myCalculator
+      
+            mvn sonar:sonar -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Dsonar.organization=pacific-devops \
+              -Dsonar.projectKey=pacific-devops_Hello_master \
+              -Dsonar.sources=src/main \
+              -Dsonar.tests=src/test \
+              -Dsonar.verbose=true \
+              -Pcoverage -X
+          }
