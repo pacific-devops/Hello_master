@@ -37,10 +37,10 @@ jobs:
         run: |
           cd myCalculator
           mvn clean test
-     # - name: Build with Maven and Generate JaCoCo Report
-      #  run: |
-       #   cd myCalculator
-        #  mvn clean verify # 'verify' will run tests and generate th
+      - name: Build with Maven and Generate JaCoCo Report
+        run: |
+          cd myCalculator
+          mvn clean verify # 'verify' will run tests and generate th
       - name: SonarQube Scan Maven
         id: execute-sonarqube-scan-maven
         if: always()
