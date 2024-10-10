@@ -18,8 +18,8 @@ response = requests.get(api_url, headers=headers)
 response.raise_for_status()  # Raise an error for bad responses
 repository_data = response.json()
 
-# Get custom properties dynamically from the 'with:' input (semicolon-separated)
-custom_properties_input = os.getenv('INPUT_CUSTOM_PROPERTIES', '')  # 'with:' input from GitHub Actions
+# Get custom properties dynamically from the environment variable (semicolon-separated)
+custom_properties_input = os.getenv('CUSTOM_PROPERTIES', '')  # Using env from GitHub Actions
 custom_properties = custom_properties_input.split(';')
 
 # Loop through the provided custom properties and fetch the values
