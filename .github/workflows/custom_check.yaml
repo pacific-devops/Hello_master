@@ -13,7 +13,7 @@ jobs:
       - name: Read custom properties and write to GITHUB_OUTPUT
         id: create_path
         run: |
-          python3 read_custom_properties.py
+          python3 scripts/read_custom_properties.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub token to access repository properties
           CUSTOM_PROPERTIES: "domain;jfrog_repo"  # Dynamic custom properties passed as environment variable
