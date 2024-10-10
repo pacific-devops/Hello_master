@@ -1,0 +1,24 @@
+name: Read Custom Properties and Write to GITHUB_OUTPUT
+
+on:
+  push:
+
+jobs:
+  create-path:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Read custom properties and write to GITHUB_OUTPUT
+        id: create_path
+        run: |
+          python3 read_custom_properties.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub token to access repository properties
+          CUSTOM_PROPERTIES: "domain;jfrog_repo"  # Dynamic custom properties passed as environment variable
+
+      - name: Use created properties
+        run: |
+          echo "Domain is ${{ steps.create_path.outputs.domain }}"
+          echo "JFrog Repo is ${{ steps.create_path.outputs.jfrog_repo }}"
