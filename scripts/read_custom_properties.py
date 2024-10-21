@@ -27,7 +27,7 @@ for prop in custom_properties:
     value = repository_data.get('custom_properties', {}).get(prop)
     if value:
         # Write each custom property to GITHUB_OUTPUT individually
-        with open(os.getenv('GITHUB_OUTPUT'), 'a') as github_output:
-            github_output.write(f"{prop}={value}\n")
+        with open(os.getenv('GITHUB_ENV'), 'a') as github_env:
+            github_env.write(f"{prop}={value}\n")
     else:
         print(f"Warning: Custom property '{prop}' not found.")
