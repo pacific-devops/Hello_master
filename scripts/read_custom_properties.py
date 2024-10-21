@@ -1,33 +1,61 @@
+"""
+This script fetches and processes custom properties from a GitHub repository.
+"""
+
 import os
 import requests
 
-# Get the repository name dynamically from the environment
-repo = os.getenv('GITHUB_REPOSITORY')  # This dynamically takes the current repo name
+def main():
+    """Main function to fetch and process custom properties."""
 
-# GitHub API URL to fetch repository custom properties
-api_url = f"https://api.github.com/repos/{repo}"
+    # Fetch environment variables
+    github_token = os.getenv("GH_TOKEN")
+    repo_name = os.getenv("GITHUB_REPOSITORY")
+    custom_properties_input = os.getenv("CUSTOM_PROPERTY_NAMES", '')
 
-# Authentication headers
-headers = {
-    "Authorization": f"token {os.getenv('GITHUB_TOKEN')}",
-    "Accept": "application/vnd.github.v3+json"
-}
+    error_code = 0
+    results = {}
 
-# Fetch the repository data from GitHub API
-response = requests.get(api_url, headers=headers)
-response.raise_for_status()  # Raise an error for bad responses
-repository_data = response.json()
-
-# Get custom properties dynamically from the environment variable (semicolon-separated)
-custom_properties_input = os.getenv('CUSTOM_PROPERTIES', '')  # Using env from GitHub Actions
-custom_properties = custom_properties_input.split(';')
-
-# Loop through the provided custom properties and fetch the values
-for prop in custom_properties:
-    value = repository_data.get('custom_properties', {}).get(prop)
-    if value:
-        # Write each custom property to GITHUB_OUTPUT individually
-        with open(os.getenv('GITHUB_ENV'), 'a') as github_env:
-            github_env.write(f"{prop}={value}\n")
+    if not github_token or not repo_name or not custom_properties_input:
+        print("ERROR: Missing required environment variables")
+        error_code = 100
     else:
-        print(f"Warning: Custom property '{prop}' not found.")
+        # GitHub API URL for the repository's custom properties
+        api_url = f"https://api.github.com/repos/{repo_name}"
+
+        # Set the headers for authentication
+        headers = {
+            "Authorization": f"token {github_token}",
+            "Accept": "application/vnd.github.v3+json",
+        }
+
+        try:
+            # Fetch the repository data using the GitHub API
+            response = requests.get(api_url, headers=headers, timeout=20)
+            response.raise_for_status()
+
+            # Parse the repository data
+            repo_data = response.json()
+
+            # Loop through the provided custom properties and fetch the values
+            custom_properties = custom_properties_input.split(';')
+            for prop in custom_properties:
+                value = repo_data.get("custom_properties", {}).get(prop, None)
+                if value:
+                    results[prop] = value
+                else:
+                    print(f"Warning: Custom property '{prop}' not found.")
+                    error_code = 102
+
+        except requests.exceptions.RequestException as e:
+            print(f"ERROR: Failed to fetch repository details: {e}")
+            error_code = 101
+
+    # Write the output to GITHUB_ENV for GitHub Actions
+    with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as fh:
+        fh.write(f"py_custom_prop_error_code={error_code}\n")
+        for prop, value in results.items():
+            fh.write(f"{prop}={value}\n")
+
+if __name__ == "__main__":
+    main()
