@@ -20,5 +20,5 @@ jobs:
 
       - name: Use created properties
         run: |
-          echo "Domain is ${{ steps.create_path.outputs.domain }}"
-          echo "JFrog Repo is ${{ steps.create_path.outputs.jfrog_repo }}"
+          echo "Domain is $domain"
+          echo "JFrog Repo is $jfrog_repo"
