@@ -9,9 +9,9 @@ def main():
     """Main function to fetch and process custom properties."""
 
     # Fetch environment variables
-    github_token = os.getenv("GH_TOKEN")
+    github_token = os.getenv("GITHUB_TOKEN")
     repo_name = os.getenv("GITHUB_REPOSITORY")
-    custom_properties_input = os.getenv("CUSTOM_PROPERTY_NAMES", '')
+    custom_properties_input = os.getenv("CUSTOM_PROPERTIES", '')
 
     error_code = 0
     results = {}
