@@ -16,4 +16,5 @@ jobs:
     needs: call-reusable-workflow  # Ensure this job depends on the reusable workflow
     steps:
       - name: Use the Artifact Name
-        run: echo "Artifact name from reusable workflow: ${{ needs.call-reusable-workflow.outputs.artifact_name }}"
+        run: |
+          echo "Artifact name from reusable workflow: ${{ needs.call-reusable-workflow.outputs.artifact_name }}"
