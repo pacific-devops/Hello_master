@@ -9,7 +9,7 @@ jobs:
   # Call the reusable workflow to generate an artifact name
   call-reusable-workflow:
     uses: pacific-devops/resuable/.github/workflows/reusable-artifact-name.yml@main  # Call the reusable workflow
-
+  
   # Use the output from the reusable workflow
   use-artifact:
     runs-on: ubuntu-latest
