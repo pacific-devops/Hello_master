@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  # Call the reusable workflow to generate an artifact name
+  # Call the reusable workflow to generate an artifact names
   call-reusable-workflow:
     uses: pacific-devops/resuable/.github/workflows/reusable-artifact-name.yml@main  # Call the reusable workflow
   
