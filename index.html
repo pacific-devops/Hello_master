@@ -3,25 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deployment Status</title>
-    <script>
-        function getParameterByName(name, url = window.location.href) {
-            name = name.replace(/[\[\]]/g, '\\$&');
-            let regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-                results = regex.exec(url);
-            if (!results) return null;
-            if (!results[2]) return '';
-            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    <title>Deployment Pipeline Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
         }
-
-        window.onload = function() {
-            let tag = getParameterByName('tag') || 'No tag provided';
-            let environment = getParameterByName('environment') || 'No environment provided';
-            document.getElementById('status').innerHTML = `Deployed tag ${tag} to ${environment} environment`;
-        };
-    </script>
+        h1 {
+            color: #333;
+        }
+        .status {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .status.success {
+            border-left: 5px solid green;
+        }
+        .status.failure {
+            border-left: 5px solid red;
+        }
+        .info {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1 id="status">Loading deployment status...</h1>
+    <h1>Deployment Pipeline Status</h1>
+
+    <div class="info">
+        <strong>Build Status:</strong> <span class="status {{ BUILD_STATUS }}">Successful</span><br>
+        <strong>Build Number:</strong> #{{ BUILD_NUMBER }}<br>
+        <strong>Build Time:</strong> {{ BUILD_TIME }} minutes<br>
+        <strong>Build Trigger:</strong> {{ BUILD_TRIGGER }}<br>
+    </div>
+
+    <div class="info">
+        <strong>Tag:</strong> {{ TAG }}<br>
+        <strong>Environment:</strong> {{ ENVIRONMENT }}<br>
+        <strong>Deployment Status:</strong> {{ DEPLOY_STATUS }}<br>
+        <strong>Deployment Time:</strong> {{ DEPLOY_TIME }}<br>
+    </div>
+
+    <div class="info">
+        <strong>Commit SHA:</strong> {{ COMMIT_SHA }}<br>
+        <strong>Commit Message:</strong> "{{ COMMIT_MESSAGE }}"<br>
+        <strong>Commit Author:</strong> {{ COMMIT_AUTHOR }}<br>
+        <strong>Commit Date:</strong> {{ COMMIT_DATE }}<br>
+    </div>
+
+    <div class="info">
+        <strong>Release Name:</strong> {{ RELEASE_NAME }}<br>
+        <strong>Change Log:</strong> {{ CHANGE_LOG }}<br>
+        <strong>Artifact:</strong> <a href="{{ ARTIFACT_LINK }}">Download JAR</a><br>
+    </div>
+
+    <h2>Pipeline Visualization:</h2>
+    <img src="pipeline-diagram.png" alt="Pipeline Diagram">
 </body>
 </html>
