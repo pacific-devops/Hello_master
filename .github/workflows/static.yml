@@ -31,6 +31,40 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set build and deployment details
+        id: set_details
+        run: |
+          echo "BUILD_NUMBER=$(echo $GITHUB_RUN_NUMBER)" >> $GITHUB_ENV
+          echo "BUILD_STATUS=success" >> $GITHUB_ENV
+          echo "BUILD_TIME=5" >> $GITHUB_ENV
+          echo "BUILD_TRIGGER=manual" >> $GITHUB_ENV
+          echo "DEPLOY_STATUS=successful" >> $GITHUB_ENV
+          echo "DEPLOY_TIME=$(date)" >> $GITHUB_ENV
+          echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+          echo "COMMIT_AUTHOR=$(git log -1 --pretty=%an)" >> $GITHUB_ENV
+          echo "COMMIT_DATE=$(git log -1 --pretty=%cd)" >> $GITHUB_ENV
+          echo "RELEASE_NAME=Version ${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+          echo "CHANGE_LOG=Fixed bugs and improved performance." >> $GITHUB_ENV
+          echo "ARTIFACT_LINK=https://jfrog-link-to-artifact" >> $GITHUB_ENV
+      - name: Inject dynamic data into index.html
+        run: |
+          sed -i "s/{{ BUILD_NUMBER }}/${{ env.BUILD_NUMBER }}/g" index.html
+          sed -i "s/{{ BUILD_STATUS }}/${{ env.BUILD_STATUS }}/g" index.html
+          sed -i "s/{{ BUILD_TIME }}/${{ env.BUILD_TIME }}/g" index.html
+          sed -i "s/{{ BUILD_TRIGGER }}/${{ env.BUILD_TRIGGER }}/g" index.html
+          sed -i "s/{{ TAG }}/${{ github.event.inputs.tag }}/g" index.html
+          sed -i "s/{{ ENVIRONMENT }}/${{ github.job.environment.name }}/g" index.html
+          sed -i "s/{{ DEPLOY_STATUS }}/${{ env.DEPLOY_STATUS }}/g" index.html
+          sed -i "s/{{ DEPLOY_TIME }}/${{ env.DEPLOY_TIME }}/g" index.html
+          sed -i "s/{{ COMMIT_SHA }}/${{ env.COMMIT_SHA }}/g" index.html
+          sed -i "s/{{ COMMIT_MESSAGE }}/${{ env.COMMIT_MESSAGE }}/g" index.html
+          sed -i "s/{{ COMMIT_AUTHOR }}/${{ env.COMMIT_AUTHOR }}/g" index.html
+          sed -i "s/{{ COMMIT_DATE }}/${{ env.COMMIT_DATE }}/g" index.html
+          sed -i "s/{{ RELEASE_NAME }}/${{ env.RELEASE_NAME }}/g" index.html
+          sed -i "s/{{ CHANGE_LOG }}/${{ env.CHANGE_LOG }}/g" index.html
+          sed -i "s|{{ ARTIFACT_LINK }}|${{ env.ARTIFACT_LINK }}|g" index.html
+      
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
