@@ -1,11 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Deployment Status</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deployment Status</title>
+    <script>
+        function getParameterByName(name, url = window.location.href) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            let regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        window.onload = function() {
+            let tag = getParameterByName('tag') || 'No tag provided';
+            let environment = getParameterByName('environment') || 'No environment provided';
+            document.getElementById('status').innerHTML = `Deployed tag ${tag} to ${environment} environment`;
+        };
+    </script>
 </head>
 <body>
-   <h1>Deployed tag ${{ github.event.inputs.tag }} to ${{ github.job.environment.name }} environment</h1>
+    <h1 id="status">Loading deployment status...</h1>
 </body>
 </html>
