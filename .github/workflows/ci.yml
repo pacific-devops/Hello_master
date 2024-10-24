@@ -1,9 +1,7 @@
 name: Test Output from Reusable Workflow
 
 on: 
-  push:
-    branches:
-      - main
+ workflow_call:
 
 jobs:
   # Call the reusable workflow to generate an artifact names
