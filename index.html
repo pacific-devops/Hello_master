@@ -6,6 +6,6 @@
    <title>Deployment Status</title>
 </head>
 <body>
-   <h1>Deployed tag ${{ github.event.inputs.tag }} to ${{ github.event.inputs.environment }} environment</h1>
+   <h1>Deployed tag ${{ github.event.inputs.tag }} to ${{ github.job.environment.name }} environment</h1>
 </body>
 </html>
