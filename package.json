@@ -1,0 +1,13 @@
+{
+  "name": "dynamic-server",
+  "version": "1.0.0",
+  "description": "A dynamic Node.js server to fetch GitHub workflow details",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "axios": "^0.21.1"
+  }
+}
