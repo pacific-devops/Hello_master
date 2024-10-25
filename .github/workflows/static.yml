@@ -32,19 +32,40 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '16'
+      # Step 2: Fetch latest workflow data and inject it into environment variables
+      - name: Fetch deployment details
+        id: fetch_data
+        run: |
+          LATEST_RUN=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          https://api.github.com/repos/${{ github.repository }}/actions/runs?per_page=1 | jq -r '.workflow_runs[0]')
 
-      - name: Install dependencies
-        run: npm install
+          # Extract specific details
+          COMMIT_SHA=$(echo $LATEST_RUN | jq -r '.head_sha' | cut -c1-7) # Shorten SHA
+          COMMIT_MESSAGE=$(echo $LATEST_RUN | jq -r '.head_commit.message')
+          COMMIT_AUTHOR=$(echo $LATEST_RUN | jq -r '.head_commit.author.name')
+          COMMIT_DATE=$(echo $LATEST_RUN | jq -r '.head_commit.timestamp')
+          BUILD_STATUS=$(echo $LATEST_RUN | jq -r '.conclusion')
+          DEPLOY_TIME=$(date)
+          
+          # Set variables for replacement in index.html
+          echo "COMMIT_SHA=$COMMIT_SHA" >> $GITHUB_ENV
+          echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
+          echo "COMMIT_AUTHOR=$COMMIT_AUTHOR" >> $GITHUB_ENV
+          echo "COMMIT_DATE=$COMMIT_DATE" >> $GITHUB_ENV
+          echo "BUILD_STATUS=$BUILD_STATUS" >> $GITHUB_ENV
+          echo "DEPLOY_TIME=$DEPLOY_TIME" >> $GITHUB_ENV
+          echo "TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
 
-      # Run your Node.js server and pass the GITHUB_TOKEN as an environment variable
-      - name: Run Node.js server
-        run: node server.js
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass the token securely
+      # Step 3: Inject fetched data into index.html
+      - name: Update index.html with deployment details
+        run: |
+          sed -i "s/{{ TAG }}/${{ env.TAG }}/g" index.html
+          sed -i "s/{{ COMMIT_SHA }}/${{ env.COMMIT_SHA }}/g" index.html
+          sed -i "s/{{ COMMIT_MESSAGE }}/${{ env.COMMIT_MESSAGE }}/g" index.html
+          sed -i "s/{{ COMMIT_AUTHOR }}/${{ env.COMMIT_AUTHOR }}/g" index.html
+          sed -i "s/{{ COMMIT_DATE }}/${{ env.COMMIT_DATE }}/g" index.html
+          sed -i "s/{{ BUILD_STATUS }}/${{ env.BUILD_STATUS }}/g" index.html
+          sed -i "s/{{ DEPLOY_TIME }}/${{ env.DEPLOY_TIME }}/g" index.html
       
       - name: Setup Pages
         uses: actions/configure-pages@v5
