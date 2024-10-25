@@ -58,7 +58,7 @@ jobs:
           echo "COMMIT_DATE=$COMMIT_DATE" >> $GITHUB_ENV
           echo "TAG=$TAG" >> $GITHUB_ENV
           echo "DEPLOY_TIME=$DEPLOY_TIME" >> $GITHUB_ENV
-          echo "ENVIRONMENT=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          echo "ENVIRONMENT=${{ github.job.environment.name }}" >> $GITHUB_ENV
 
       # Step 3: Find workflow run associated with the commit SHA
       - name: Fetch workflow run associated with commit
@@ -78,19 +78,33 @@ jobs:
           echo "RUN_STATUS=$RUN_STATUS" >> $GITHUB_ENV
           echo "RUN_CONCLUSION=$RUN_CONCLUSION" >> $GITHUB_ENV
 
-      # Step 4: Inject all fetched data into index.html
+      # Step 4: Print variables for debugging
+      - name: Print variables for debugging
+        run: |
+          echo "TAG: ${{ env.TAG }}"
+          echo "ENVIRONMENT: ${{ env.ENVIRONMENT }}"
+          echo "RUN_NUMBER: ${{ env.RUN_NUMBER }}"
+          echo "RUN_STATUS: ${{ env.RUN_STATUS }}"
+          echo "RUN_CONCLUSION: ${{ env.RUN_CONCLUSION }}"
+          echo "COMMIT_SHA: ${{ env.COMMIT_SHA }}"
+          echo "COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}"
+          echo "COMMIT_AUTHOR: ${{ env.COMMIT_AUTHOR }}"
+          echo "COMMIT_DATE: ${{ env.COMMIT_DATE }}"
+          echo "DEPLOY_TIME: ${{ env.DEPLOY_TIME }}"
+
+      # Step 5: Update index.html with deployment details
       - name: Update index.html with deployment details
         run: |
-          sed -i "s/{{ TAG }}/${{ env.TAG }}/g" index.html
-          sed -i "s/{{ ENVIRONMENT }}/${{ env.ENVIRONMENT }}/g" index.html
-          sed -i "s/{{ COMMIT_SHA }}/${{ env.COMMIT_SHA }}/g" index.html
-          sed -i "s/{{ COMMIT_MESSAGE }}/${{ env.COMMIT_MESSAGE }}/g" index.html
-          sed -i "s/{{ COMMIT_AUTHOR }}/${{ env.COMMIT_AUTHOR }}/g" index.html
-          sed -i "s/{{ COMMIT_DATE }}/${{ env.COMMIT_DATE }}/g" index.html
-          sed -i "s/{{ DEPLOY_TIME }}/${{ env.DEPLOY_TIME }}/g" index.html
-          sed -i "s/{{ RUN_NUMBER }}/${{ env.RUN_NUMBER }}/g" index.html
-          sed -i "s/{{ RUN_STATUS }}/${{ env.RUN_STATUS }}/g" index.html
-          sed -i "s/{{ RUN_CONCLUSION }}/${{ env.RUN_CONCLUSION }}/g" index.html
+          sed -i "s/{{ TAG }}/${{ env.TAG:-"N/A" }}/g" index.html
+          sed -i "s/{{ ENVIRONMENT }}/${{ env.ENVIRONMENT:-"N/A" }}/g" index.html
+          sed -i "s/{{ COMMIT_SHA }}/${{ env.COMMIT_SHA:-"N/A" }}/g" index.html
+          sed -i "s/{{ COMMIT_MESSAGE }}/${{ env.COMMIT_MESSAGE:-"N/A" }}/g" index.html
+          sed -i "s/{{ COMMIT_AUTHOR }}/${{ env.COMMIT_AUTHOR:-"N/A" }}/g" index.html
+          sed -i "s/{{ COMMIT_DATE }}/${{ env.COMMIT_DATE:-"N/A" }}/g" index.html
+          sed -i "s/{{ DEPLOY_TIME }}/${{ env.DEPLOY_TIME:-"N/A" }}/g" index.html
+          sed -i "s/{{ RUN_NUMBER }}/${{ env.RUN_NUMBER:-"N/A" }}/g" index.html
+          sed -i "s/{{ RUN_STATUS }}/${{ env.RUN_STATUS:-"N/A" }}/g" index.html
+          sed -i "s/{{ RUN_CONCLUSION }}/${{ env.RUN_CONCLUSION:-"N/A" }}/g" index.html
       
       - name: Setup Pages
         uses: actions/configure-pages@v5
