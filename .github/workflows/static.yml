@@ -32,40 +32,65 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      # Step 2: Fetch latest workflow data and inject it into environment variables
-      - name: Fetch deployment details
-        id: fetch_data
+      # Step 2: Fetch commit details for the provided tag
+      - name: Fetch commit details associated with tag
+        id: fetch_commit
         run: |
-          LATEST_RUN=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          https://api.github.com/repos/${{ github.repository }}/actions/runs?per_page=1 | jq -r '.workflow_runs[0]')
+          TAG=${{ github.event.inputs.tag }}
+          COMMIT_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/git/ref/tags/$TAG" | jq -r '.object.sha')
 
-          # Extract specific details
-          COMMIT_SHA=$(echo $LATEST_RUN | jq -r '.head_sha' | cut -c1-7) # Shorten SHA
-          COMMIT_MESSAGE=$(echo $LATEST_RUN | jq -r '.head_commit.message')
-          COMMIT_AUTHOR=$(echo $LATEST_RUN | jq -r '.head_commit.author.name')
-          COMMIT_DATE=$(echo $LATEST_RUN | jq -r '.head_commit.timestamp')
-          BUILD_STATUS=$(echo $LATEST_RUN | jq -r '.conclusion')
+          # Fetch commit details using the commit SHA
+          COMMIT_DETAILS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/commits/$COMMIT_DATA")
+
+          # Extract specific details from the commit
+          COMMIT_SHA=$(echo $COMMIT_DETAILS | jq -r '.sha' | cut -c1-7) # Short SHA
+          COMMIT_MESSAGE=$(echo $COMMIT_DETAILS | jq -r '.commit.message')
+          COMMIT_AUTHOR=$(echo $COMMIT_DETAILS | jq -r '.commit.author.name')
+          COMMIT_DATE=$(echo $COMMIT_DETAILS | jq -r '.commit.author.date')
           DEPLOY_TIME=$(date)
-          
+
           # Set variables for replacement in index.html
           echo "COMMIT_SHA=$COMMIT_SHA" >> $GITHUB_ENV
           echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
           echo "COMMIT_AUTHOR=$COMMIT_AUTHOR" >> $GITHUB_ENV
           echo "COMMIT_DATE=$COMMIT_DATE" >> $GITHUB_ENV
-          echo "BUILD_STATUS=$BUILD_STATUS" >> $GITHUB_ENV
+          echo "TAG=$TAG" >> $GITHUB_ENV
           echo "DEPLOY_TIME=$DEPLOY_TIME" >> $GITHUB_ENV
-          echo "TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+          echo "ENVIRONMENT=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
 
-      # Step 3: Inject fetched data into index.html
+      # Step 3: Find workflow run associated with the commit SHA
+      - name: Fetch workflow run associated with commit
+        id: fetch_run
+        run: |
+          RUN_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/runs?per_page=100" | jq -r \
+          --arg COMMIT_SHA "${{ env.COMMIT_SHA }}" '.workflow_runs[] | select(.head_sha == $COMMIT_SHA)')
+
+          # Extract specific workflow run details
+          RUN_NUMBER=$(echo "$RUN_DATA" | jq -r '.run_number')
+          RUN_STATUS=$(echo "$RUN_DATA" | jq -r '.status')
+          RUN_CONCLUSION=$(echo "$RUN_DATA" | jq -r '.conclusion')
+
+          # Set workflow run variables for HTML injection
+          echo "RUN_NUMBER=$RUN_NUMBER" >> $GITHUB_ENV
+          echo "RUN_STATUS=$RUN_STATUS" >> $GITHUB_ENV
+          echo "RUN_CONCLUSION=$RUN_CONCLUSION" >> $GITHUB_ENV
+
+      # Step 4: Inject all fetched data into index.html
       - name: Update index.html with deployment details
         run: |
           sed -i "s/{{ TAG }}/${{ env.TAG }}/g" index.html
+          sed -i "s/{{ ENVIRONMENT }}/${{ env.ENVIRONMENT }}/g" index.html
           sed -i "s/{{ COMMIT_SHA }}/${{ env.COMMIT_SHA }}/g" index.html
           sed -i "s/{{ COMMIT_MESSAGE }}/${{ env.COMMIT_MESSAGE }}/g" index.html
           sed -i "s/{{ COMMIT_AUTHOR }}/${{ env.COMMIT_AUTHOR }}/g" index.html
           sed -i "s/{{ COMMIT_DATE }}/${{ env.COMMIT_DATE }}/g" index.html
-          sed -i "s/{{ BUILD_STATUS }}/${{ env.BUILD_STATUS }}/g" index.html
           sed -i "s/{{ DEPLOY_TIME }}/${{ env.DEPLOY_TIME }}/g" index.html
+          sed -i "s/{{ RUN_NUMBER }}/${{ env.RUN_NUMBER }}/g" index.html
+          sed -i "s/{{ RUN_STATUS }}/${{ env.RUN_STATUS }}/g" index.html
+          sed -i "s/{{ RUN_CONCLUSION }}/${{ env.RUN_CONCLUSION }}/g" index.html
       
       - name: Setup Pages
         uses: actions/configure-pages@v5
