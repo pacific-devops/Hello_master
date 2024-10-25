@@ -36,7 +36,7 @@ jobs:
       # Step 2: Fetch commit details for the provided tag
       # Debug Step: Print the environment directly
       - name: Print job environment
-        run: echo "Job Environment:${{ job.environment }}"
+        run: echo "Job Environment:${{ jobs.deploy.environment }}"
       - name: Fetch commit details associated with tag
         id: fetch_commit
         run: |
