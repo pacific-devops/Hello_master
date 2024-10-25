@@ -3,37 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deployment Status</title>
+  <title>Deployment Pipeline Status</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f4f9; color: #333; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+    h1 { color: #5b8def; }
+    p { margin: 10px 0; }
+    .status { font-weight: bold; color: #007700; }
+    .status.failed { color: #d9534f; }
+    .detail { background: #eef; padding: 10px; border-radius: 5px; }
+    .timestamp { font-size: 0.9em; color: #666; }
+  </style>
 </head>
 <body>
-  <h1>Deployed tag <span id="tag"></span> to <span id="environment"></span> environment</h1>
-  <p>Build Number: <span id="buildNumber"></span></p>
-  <p>Build Status: <span id="buildStatus"></span></p>
-  <p>Commit SHA: <span id="commitSha"></span></p>
-  <p>Commit Message: <span id="commitMessage"></span></p>
-  <p>Commit Author: <span id="commitAuthor"></span></p>
-  <p>Commit Date: <span id="commitDate"></span></p>
-  <p>Deployment Time: <span id="deployTime"></span></p>
+  <div class="container">
+    <h1>Deployment Pipeline Status</h1>
+    <p><strong>Tag:</strong> <span class="status">{{ TAG }}</span> deployed to <strong>Dev Environment</strong></p>
+    <p><strong>Build Status:</strong> <span class="status {{ BUILD_STATUS }}">{{ BUILD_STATUS }}</span></p>
 
-  <script>
-    // Fetch workflow details from the Node.js server
-    async function fetchWorkflowDetails() {
-      const response = await fetch('/workflow');
-      const data = await response.json();
+    <div class="detail">
+      <h2>Commit Details</h2>
+      <p><strong>Commit SHA:</strong> {{ COMMIT_SHA }}</p>
+      <p><strong>Commit Message:</strong> {{ COMMIT_MESSAGE }}</p>
+      <p><strong>Author:</strong> {{ COMMIT_AUTHOR }}</p>
+      <p><strong>Date:</strong> <span class="timestamp">{{ COMMIT_DATE }}</span></p>
+    </div>
 
-      // Inject data into HTML
-      document.getElementById("tag").innerText = data.commit_message;
-      document.getElementById("environment").innerText = data.run_number;
-      document.getElementById("buildNumber").innerText = data.run_number;
-      document.getElementById("buildStatus").innerText = data.conclusion;
-      document.getElementById("commitSha").innerText = data.commit_sha;
-      document.getElementById("commitMessage").innerText = data.commit_message;
-      document.getElementById("commitAuthor").innerText = data.commit_author;
-      document.getElementById("commitDate").innerText = new Date(data.commit_date).toLocaleString();
-      document.getElementById("deployTime").innerText = new Date(data.deploy_time).toLocaleString();
-    }
-
-    window.onload = fetchWorkflowDetails;
-  </script>
+    <p><strong>Deployment Time:</strong> <span class="timestamp">{{ DEPLOY_TIME }}</span></p>
+  </div>
 </body>
 </html>
