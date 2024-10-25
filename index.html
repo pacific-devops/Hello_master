@@ -18,8 +18,10 @@
 <body>
   <div class="container">
     <h1>Deployment Pipeline Status</h1>
-    <p><strong>Tag:</strong> <span class="status">{{ TAG }}</span> deployed to <strong>Dev Environment</strong></p>
-    <p><strong>Build Status:</strong> <span class="status {{ BUILD_STATUS }}">{{ BUILD_STATUS }}</span></p>
+    <p><strong>Tag:</strong> <span class="status">{{ TAG }}</span></p>
+    <p><strong>Environment:</strong> {{ ENVIRONMENT }}</p>
+    <p><strong>Workflow Run Number:</strong> <span>{{ RUN_NUMBER }}</span></p>
+    <p><strong>Run Status:</strong> <span class="status {{ RUN_CONCLUSION }}">{{ RUN_CONCLUSION }}</span></p>
 
     <div class="detail">
       <h2>Commit Details</h2>
