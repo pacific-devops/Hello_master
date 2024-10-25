@@ -38,15 +38,16 @@ jobs:
         id: fetch_commit
         run: |
           TAG=${{ github.event.inputs.tag }}
+          # Fetch the full commit SHA associated with the tag
           COMMIT_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/git/ref/tags/$TAG" | jq -r '.object.sha')
 
-          # Fetch commit details using the commit SHA
+          # Fetch commit details using the full commit SHA
           COMMIT_DETAILS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/commits/$COMMIT_DATA")
 
           # Extract specific details from the commit
-          COMMIT_SHA=$(echo $COMMIT_DETAILS | jq -r '.sha' | cut -c1-7) # Short SHA
+          COMMIT_SHA=$(echo $COMMIT_DETAILS | jq -r '.sha') # Full SHA
           COMMIT_MESSAGE=$(echo $COMMIT_DETAILS | jq -r '.commit.message')
           COMMIT_AUTHOR=$(echo $COMMIT_DETAILS | jq -r '.commit.author.name')
           COMMIT_DATE=$(echo $COMMIT_DETAILS | jq -r '.commit.author.date')
@@ -65,10 +66,10 @@ jobs:
       - name: Fetch workflow run associated with commit
         id: fetch_run
         run: |
-          # Fetch workflow runs and filter by the commit SHA
+          # Fetch workflow runs and filter by the full commit SHA
           RUN_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/actions/runs?per_page=100" | jq -r \
-          --arg COMMIT_SHA "${{ env.COMMIT_SHA }}" '.workflow_runs[] | select(.head_commit.id == $COMMIT_SHA)')
+          --arg COMMIT_SHA "${{ env.COMMIT_SHA }}" '.workflow_runs[] | select(.head_sha == $COMMIT_SHA)')
 
           # Check if RUN_DATA is empty; provide debug info
           if [[ -z "$RUN_DATA" ]]; then
