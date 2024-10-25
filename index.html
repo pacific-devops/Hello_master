@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Deployment Status</title>
+  <script src="github-token.js"></script> <!-- Securely load the GITHUB_TOKEN -->
 </head>
 <body>
   <h1>Deployed tag <span id="tag"></span> to <span id="environment"></span> environment</h1>
@@ -17,25 +18,25 @@
   <p><a id="artifactLink" href="#">Download Artifact</a></p>
 
   <script>
-    // Set your GitHub repository details
-    const owner = "your-github-username";
-    const repo = "your-repo-name";
-    const runId = "replace-with-current-run-id"; // You'll need to get this from the workflow
+    const owner = "your-github-username";  // Replace with your GitHub username
+    const repo = "your-repo-name";         // Replace with your repository name
 
-    async function fetchWorkflowRun() {
-      const response = await fetch(`https://api.github.com/repos/pacific-devops/Hello_master/actions/runs/${runId}`, {
+    // Fetch the most recent workflow run
+    async function fetchLatestWorkflowRun() {
+      const response = await fetch(`https://api.github.com/repos/pacific-devops/Hello_master/actions/runs`, {
         headers: {
-          Authorization: `Bearer ${GITHUB_TOKEN}`,  // You'll set this in the environment or provide access token dynamically
+          Authorization: `Bearer ${window.GITHUB_TOKEN}`,
           Accept: "application/vnd.github.v3+json",
         }
       });
-      return response.json();
+      const data = await response.json();
+      return data.workflow_runs[0]; // Get the latest run
     }
 
     async function fetchCommit(commitSha) {
-      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits/${commitSha}`, {
+      const response = await fetch(`https://api.github.com/repos/pacific-devops/Hello_master/commits/${commitSha}`, {
         headers: {
-          Authorization: `Bearer ${GITHUB_TOKEN}`,  // You'll set this in the environment or provide access token dynamically
+          Authorization: `Bearer ${window.GITHUB_TOKEN}`,
           Accept: "application/vnd.github.v3+json",
         }
       });
@@ -44,13 +45,14 @@
 
     async function populatePage() {
       try {
-        const workflowRun = await fetchWorkflowRun();
+        // Fetch the latest workflow run
+        const workflowRun = await fetchLatestWorkflowRun();
         const commitSha = workflowRun.head_sha;
         const commitDetails = await fetchCommit(commitSha);
 
         // Inject data into HTML
         document.getElementById("tag").innerText = workflowRun.head_commit.message;
-        document.getElementById("environment").innerText = workflowRun.run_attempt;  // Dynamic environment, you can adjust this
+        document.getElementById("environment").innerText = workflowRun.run_attempt;  // Adjust as needed
         document.getElementById("buildNumber").innerText = workflowRun.run_number;
         document.getElementById("buildStatus").innerText = workflowRun.conclusion;
         document.getElementById("commitSha").innerText = commitSha;
