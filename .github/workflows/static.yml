@@ -95,16 +95,16 @@ jobs:
       # Step 5: Update index.html with deployment details
       - name: Update index.html with deployment details
         run: |
-          sed -i "s/{{ TAG }}/${{ env.TAG:-"N/A" }}/g" index.html
-          sed -i "s/{{ ENVIRONMENT }}/${{ env.ENVIRONMENT:-"N/A" }}/g" index.html
-          sed -i "s/{{ COMMIT_SHA }}/${{ env.COMMIT_SHA:-"N/A" }}/g" index.html
-          sed -i "s/{{ COMMIT_MESSAGE }}/${{ env.COMMIT_MESSAGE:-"N/A" }}/g" index.html
-          sed -i "s/{{ COMMIT_AUTHOR }}/${{ env.COMMIT_AUTHOR:-"N/A" }}/g" index.html
-          sed -i "s/{{ COMMIT_DATE }}/${{ env.COMMIT_DATE:-"N/A" }}/g" index.html
-          sed -i "s/{{ DEPLOY_TIME }}/${{ env.DEPLOY_TIME:-"N/A" }}/g" index.html
-          sed -i "s/{{ RUN_NUMBER }}/${{ env.RUN_NUMBER:-"N/A" }}/g" index.html
-          sed -i "s/{{ RUN_STATUS }}/${{ env.RUN_STATUS:-"N/A" }}/g" index.html
-          sed -i "s/{{ RUN_CONCLUSION }}/${{ env.RUN_CONCLUSION:-"N/A" }}/g" index.html
+          sed -i "s/{{ TAG }}/${{ env.TAG || 'N/A' }}/g" index.html
+          sed -i "s/{{ ENVIRONMENT }}/${{ env.ENVIRONMENT || 'N/A' }}/g" index.html
+          sed -i "s/{{ COMMIT_SHA }}/${{ env.COMMIT_SHA || 'N/A' }}/g" index.html
+          sed -i "s/{{ COMMIT_MESSAGE }}/${{ env.COMMIT_MESSAGE || 'N/A' }}/g" index.html
+          sed -i "s/{{ COMMIT_AUTHOR }}/${{ env.COMMIT_AUTHOR || 'N/A' }}/g" index.html
+          sed -i "s/{{ COMMIT_DATE }}/${{ env.COMMIT_DATE || 'N/A' }}/g" index.html
+          sed -i "s/{{ DEPLOY_TIME }}/${{ env.DEPLOY_TIME || 'N/A' }}/g" index.html
+          sed -i "s/{{ RUN_NUMBER }}/${{ env.RUN_NUMBER || 'N/A' }}/g" index.html
+          sed -i "s/{{ RUN_STATUS }}/${{ env.RUN_STATUS || 'N/A' }}/g" index.html
+          sed -i "s/{{ RUN_CONCLUSION }}/${{ env.RUN_CONCLUSION || 'N/A' }}/g" index.html
       
       - name: Setup Pages
         uses: actions/configure-pages@v5
