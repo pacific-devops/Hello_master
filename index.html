@@ -1,64 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deployment Pipeline Status</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        .status {
-            background-color: #f4f4f4;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .status.success {
-            border-left: 5px solid green;
-        }
-        .status.failure {
-            border-left: 5px solid red;
-        }
-        .info {
-            margin-bottom: 10px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deployment Status</title>
 </head>
 <body>
-    <h1>Deployment Pipeline Status</h1>
+  <h1>Deployed tag <span id="tag"></span> to <span id="environment"></span> environment</h1>
+  <p>Build Number: <span id="buildNumber"></span></p>
+  <p>Build Status: <span id="buildStatus"></span></p>
+  <p>Commit SHA: <span id="commitSha"></span></p>
+  <p>Commit Message: <span id="commitMessage"></span></p>
+  <p>Commit Author: <span id="commitAuthor"></span></p>
+  <p>Commit Date: <span id="commitDate"></span></p>
+  <p>Deployment Time: <span id="deployTime"></span></p>
+  <p><a id="artifactLink" href="#">Download Artifact</a></p>
 
-    <div class="info">
-        <strong>Build Status:</strong> <span class="status {{ BUILD_STATUS }}">Successful</span><br>
-        <strong>Build Number:</strong> #{{ BUILD_NUMBER }}<br>
-        <strong>Build Time:</strong> {{ BUILD_TIME }} minutes<br>
-        <strong>Build Trigger:</strong> {{ BUILD_TRIGGER }}<br>
-    </div>
+  <script>
+    // Set your GitHub repository details
+    const owner = "your-github-username";
+    const repo = "your-repo-name";
+    const runId = "replace-with-current-run-id"; // You'll need to get this from the workflow
 
-    <div class="info">
-        <strong>Tag:</strong> {{ TAG }}<br>
-        <strong>Environment:</strong> {{ ENVIRONMENT }}<br>
-        <strong>Deployment Status:</strong> {{ DEPLOY_STATUS }}<br>
-        <strong>Deployment Time:</strong> {{ DEPLOY_TIME }}<br>
-    </div>
+    async function fetchWorkflowRun() {
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}`, {
+        headers: {
+          Authorization: `Bearer ${GITHUB_TOKEN}`,  // You'll set this in the environment or provide access token dynamically
+          Accept: "application/vnd.github.v3+json",
+        }
+      });
+      return response.json();
+    }
 
-    <div class="info">
-        <strong>Commit SHA:</strong> {{ COMMIT_SHA }}<br>
-        <strong>Commit Message:</strong> "{{ COMMIT_MESSAGE }}"<br>
-        <strong>Commit Author:</strong> {{ COMMIT_AUTHOR }}<br>
-        <strong>Commit Date:</strong> {{ COMMIT_DATE }}<br>
-    </div>
+    async function fetchCommit(commitSha) {
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits/${commitSha}`, {
+        headers: {
+          Authorization: `Bearer ${GITHUB_TOKEN}`,  // You'll set this in the environment or provide access token dynamically
+          Accept: "application/vnd.github.v3+json",
+        }
+      });
+      return response.json();
+    }
 
-    <div class="info">
-        <strong>Release Name:</strong> {{ RELEASE_NAME }}<br>
-        <strong>Change Log:</strong> {{ CHANGE_LOG }}<br>
-        <strong>Artifact:</strong> <a href="{{ ARTIFACT_LINK }}">Download JAR</a><br>
-    </div>
+    async function populatePage() {
+      try {
+        const workflowRun = await fetchWorkflowRun();
+        const commitSha = workflowRun.head_sha;
+        const commitDetails = await fetchCommit(commitSha);
 
-    <h2>Pipeline Visualization:</h2>
-    <img src="pipeline-diagram.png" alt="Pipeline Diagram">
+        // Inject data into HTML
+        document.getElementById("tag").innerText = workflowRun.head_commit.message;
+        document.getElementById("environment").innerText = workflowRun.run_attempt;  // Dynamic environment, you can adjust this
+        document.getElementById("buildNumber").innerText = workflowRun.run_number;
+        document.getElementById("buildStatus").innerText = workflowRun.conclusion;
+        document.getElementById("commitSha").innerText = commitSha;
+        document.getElementById("commitMessage").innerText = commitDetails.commit.message;
+        document.getElementById("commitAuthor").innerText = commitDetails.commit.author.name;
+        document.getElementById("commitDate").innerText = new Date(commitDetails.commit.author.date).toLocaleString();
+        document.getElementById("deployTime").innerText = new Date(workflowRun.created_at).toLocaleString();
+        document.getElementById("artifactLink").setAttribute("href", "https://jfrog-link-to-artifact");
+      } catch (error) {
+        console.error("Error fetching workflow details:", error);
+      }
+    }
+
+    window.onload = populatePage;
+  </script>
 </body>
 </html>
