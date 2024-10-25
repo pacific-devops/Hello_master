@@ -32,6 +32,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up environment variables
+        run: echo "window.GITHUB_TOKEN='${{ secrets.GITHUB_TOKEN }}';" >> ./github-token.js
       
       - name: Setup Pages
         uses: actions/configure-pages@v5
