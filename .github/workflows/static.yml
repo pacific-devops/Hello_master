@@ -33,6 +33,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       # Step 2: Fetch commit details for the provided tag
+      # Step 2: Fetch commit details for the provided tag
       - name: Fetch commit details associated with tag
         id: fetch_commit
         run: |
