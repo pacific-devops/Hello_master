@@ -32,8 +32,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up environment variables
-        run: echo "window.GITHUB_TOKEN='${{ secrets.GITHUB_TOKEN }}';" >> ./github-token.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      # Run your Node.js server and pass the GITHUB_TOKEN as an environment variable
+      - name: Run Node.js server
+        run: node server.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass the token securely
       
       - name: Setup Pages
         uses: actions/configure-pages@v5
