@@ -59,25 +59,42 @@ jobs:
           echo "COMMIT_DATE=$COMMIT_DATE" >> $GITHUB_ENV
           echo "TAG=$TAG" >> $GITHUB_ENV
           echo "DEPLOY_TIME=$DEPLOY_TIME" >> $GITHUB_ENV
-          echo "ENVIRONMENT=${{ job.deploy.environment }}" >> $GITHUB_ENV  # Ensure environment is set here
+          echo "ENVIRONMENT=${{ job.environment }}" >> $GITHUB_ENV
 
-      # Step 3: Find workflow run associated with the commit SHA
+      # Step 3: Fetch workflow run associated with the commit SHA
       - name: Fetch workflow run associated with commit
         id: fetch_run
         run: |
+          # Fetch workflow runs and filter by the commit SHA
           RUN_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/actions/runs?per_page=100" | jq -r \
-          --arg COMMIT_SHA "${{ env.COMMIT_SHA }}" '.workflow_runs[] | select(.head_sha == $COMMIT_SHA)')
+          --arg COMMIT_SHA "${{ env.COMMIT_SHA }}" '.workflow_runs[] | select(.head_commit.id == $COMMIT_SHA)')
 
-          # Extract specific workflow run details or set N/A if not found
-          RUN_NUMBER=$(echo "$RUN_DATA" | jq -r '.run_number // "N/A"')
-          RUN_STATUS=$(echo "$RUN_DATA" | jq -r '.status // "N/A"')
-          RUN_CONCLUSION=$(echo "$RUN_DATA" | jq -r '.conclusion // "N/A"')
+          # Check if RUN_DATA is empty; provide debug info
+          if [[ -z "$RUN_DATA" ]]; then
+            echo "No matching workflow run found for commit SHA: $COMMIT_SHA" >&2
+            RUN_NUMBER="N/A"
+            RUN_STATUS="N/A"
+            RUN_CONCLUSION="N/A"
+          else
+            # Extract specific workflow run details
+            RUN_NUMBER=$(echo "$RUN_DATA" | jq -r '.run_number // "N/A"')
+            RUN_STATUS=$(echo "$RUN_DATA" | jq -r '.status // "N/A"')
+            RUN_CONCLUSION=$(echo "$RUN_DATA" | jq -r '.conclusion // "N/A"')
+
+            # Extract additional details like URLs for logs, artifacts, etc.
+            WORKFLOW_HTML_URL=$(echo "$RUN_DATA" | jq -r '.html_url // "N/A"')
+            WORKFLOW_ARTIFACTS_URL=$(echo "$RUN_DATA" | jq -r '.artifacts_url // "N/A"')
+            WORKFLOW_LOGS_URL=$(echo "$RUN_DATA" | jq -r '.logs_url // "N/A"')
+          fi
 
           # Set workflow run variables for HTML injection
           echo "RUN_NUMBER=$RUN_NUMBER" >> $GITHUB_ENV
           echo "RUN_STATUS=$RUN_STATUS" >> $GITHUB_ENV
           echo "RUN_CONCLUSION=$RUN_CONCLUSION" >> $GITHUB_ENV
+          echo "WORKFLOW_HTML_URL=$WORKFLOW_HTML_URL" >> $GITHUB_ENV
+          echo "WORKFLOW_ARTIFACTS_URL=$WORKFLOW_ARTIFACTS_URL" >> $GITHUB_ENV
+          echo "WORKFLOW_LOGS_URL=$WORKFLOW_LOGS_URL" >> $GITHUB_ENV
 
       # Step 4: Print variables for debugging
       - name: Print variables for debugging
@@ -92,6 +109,9 @@ jobs:
           echo "COMMIT_AUTHOR: ${{ env.COMMIT_AUTHOR }}"
           echo "COMMIT_DATE: ${{ env.COMMIT_DATE }}"
           echo "DEPLOY_TIME: ${{ env.DEPLOY_TIME }}"
+          echo "WORKFLOW_HTML_URL: ${{ env.WORKFLOW_HTML_URL }}"
+          echo "WORKFLOW_ARTIFACTS_URL: ${{ env.WORKFLOW_ARTIFACTS_URL }}"
+          echo "WORKFLOW_LOGS_URL: ${{ env.WORKFLOW_LOGS_URL }}"
 
       # Step 5: Update index.html with deployment details
       - name: Update index.html with deployment details
@@ -106,6 +126,9 @@ jobs:
           sed -i "s|{{ RUN_NUMBER }}|${{ env.RUN_NUMBER || 'N/A' }}|g" index.html
           sed -i "s|{{ RUN_STATUS }}|${{ env.RUN_STATUS || 'N/A' }}|g" index.html
           sed -i "s|{{ RUN_CONCLUSION }}|${{ env.RUN_CONCLUSION || 'N/A' }}|g" index.html
+          sed -i "s|{{ WORKFLOW_HTML_URL }}|${{ env.WORKFLOW_HTML_URL || 'N/A' }}|g" index.html
+          sed -i "s|{{ WORKFLOW_ARTIFACTS_URL }}|${{ env.WORKFLOW_ARTIFACTS_URL || 'N/A' }}|g" index.html
+          sed -i "s|{{ WORKFLOW_LOGS_URL }}|${{ env.WORKFLOW_LOGS_URL || 'N/A' }}|g" index.html
       
       - name: Setup Pages
         uses: actions/configure-pages@v5
