@@ -59,7 +59,7 @@ jobs:
           echo "COMMIT_DATE=$COMMIT_DATE" >> $GITHUB_ENV
           echo "TAG=$TAG" >> $GITHUB_ENV
           echo "DEPLOY_TIME=$DEPLOY_TIME" >> $GITHUB_ENV
-          echo "ENVIRONMENT=${{ github.job.environment.name }}" >> $GITHUB_ENV
+          echo "ENVIRONMENT=${{ job.deploy.environment }}" >> $GITHUB_ENV  # Ensure environment is set here
 
       # Step 3: Find workflow run associated with the commit SHA
       - name: Fetch workflow run associated with commit
@@ -69,10 +69,10 @@ jobs:
           "https://api.github.com/repos/${{ github.repository }}/actions/runs?per_page=100" | jq -r \
           --arg COMMIT_SHA "${{ env.COMMIT_SHA }}" '.workflow_runs[] | select(.head_sha == $COMMIT_SHA)')
 
-          # Extract specific workflow run details
-          RUN_NUMBER=$(echo "$RUN_DATA" | jq -r '.run_number')
-          RUN_STATUS=$(echo "$RUN_DATA" | jq -r '.status')
-          RUN_CONCLUSION=$(echo "$RUN_DATA" | jq -r '.conclusion')
+          # Extract specific workflow run details or set N/A if not found
+          RUN_NUMBER=$(echo "$RUN_DATA" | jq -r '.run_number // "N/A"')
+          RUN_STATUS=$(echo "$RUN_DATA" | jq -r '.status // "N/A"')
+          RUN_CONCLUSION=$(echo "$RUN_DATA" | jq -r '.conclusion // "N/A"')
 
           # Set workflow run variables for HTML injection
           echo "RUN_NUMBER=$RUN_NUMBER" >> $GITHUB_ENV
