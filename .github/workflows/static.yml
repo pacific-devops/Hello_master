@@ -33,21 +33,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       # Step 2: Fetch commit details for the provided tag
-      # Step 1: Fetch tag reference to get the associated commit SHA
-      - name: Get Tag Reference
-        id: tag_ref
+      # Step 1: Fetch release details based on the provided tag
+      - name: Get Release by Tag
+        id: release_info
         uses: octokit/request-action@v2
         with:
-          route: GET /repos/${{ github.repository }}/git/ref/tags/${{ github.event.inputs.tag }}
+          route: GET /repos/${{ github.repository }}/releases/tags/${{ github.event.inputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 2: Fetch commit details for the SHA from the tag
+      # Step 2: Fetch commit details for the SHA associated with the release
       - name: Get Commit Details
         id: commit_details
         uses: octokit/request-action@v2
         with:
-          route: GET /repos/${{ github.repository }}/commits/${{ steps.tag_ref.outputs.data.object.sha }}
+          route: GET /repos/${{ github.repository }}/commits/${{ steps.release_info.outputs.data.target_commitish }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -56,26 +56,31 @@ jobs:
         id: workflow_run
         uses: octokit/request-action@v2
         with:
-          route: GET /repos/${{ github.repository }}/actions/runs
-          parameters:
-            per_page: 100
+          route: GET /repos/${{ github.repository }}/actions/runs?per_page=100
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 4: Directly Update index.html with Fetched Values
-      - name: Update index.html with deployment details
+      # Step 4: Directly Update index.html with all details
+      - name: Update index.html with release, commit, and workflow details
         run: |
-          # Extract values directly from outputs and update placeholders in index.html
+          # Update placeholders in index.html with release information
           sed -i "s|{{ TAG }}|${{ github.event.inputs.tag }}|g" index.html
-          sed -i "s|{{ ENVIRONMENT }}|github-pages|g" index.html
-          sed -i "s|{{ COMMIT_SHA }}|${{ steps.tag_ref.outputs.data.object.sha }}|g" index.html
+          sed -i "s|{{ ENVIRONMENT }}|dev|g" index.html
+          sed -i "s|{{ RELEASE_NAME }}|${{ steps.release_info.outputs.data.name }}|g" index.html
+          sed -i "s|{{ RELEASE_BODY }}|${{ steps.release_info.outputs.data.body }}|g" index.html
+          sed -i "s|{{ PUBLISHED_AT }}|${{ steps.release_info.outputs.data.published_at }}|g" index.html
+
+          # Insert commit details
+          sed -i "s|{{ COMMIT_SHA }}|${{ steps.commit_details.outputs.data.sha }}|g" index.html
           sed -i "s|{{ COMMIT_MESSAGE }}|${{ steps.commit_details.outputs.data.commit.message }}|g" index.html
           sed -i "s|{{ COMMIT_AUTHOR }}|${{ steps.commit_details.outputs.data.commit.author.name }}|g" index.html
           sed -i "s|{{ COMMIT_DATE }}|${{ steps.commit_details.outputs.data.commit.author.date }}|g" index.html
+
+          # Insert deployment time
           sed -i "s|{{ DEPLOY_TIME }}|$(date)|g" index.html
 
           # Get first matching workflow run associated with the commit SHA
-          WORKFLOW_RUN=$(echo '${{ steps.workflow_run.outputs.data }}' | jq -r --arg COMMIT_SHA "${{ steps.tag_ref.outputs.data.object.sha }}" \
+          WORKFLOW_RUN=$(echo '${{ steps.workflow_run.outputs.data }}' | jq -r --arg COMMIT_SHA "${{ steps.commit_details.outputs.data.sha }}" \
             '.workflow_runs[] | select(.head_sha == $COMMIT_SHA) | @base64')
 
           if [[ -n "$WORKFLOW_RUN" ]]; then
