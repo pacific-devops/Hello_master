@@ -36,7 +36,7 @@ jobs:
       # Step 1: Fetch release details based on the provided tag
       - name: Get Release by Tag
         id: release_info
-        uses: octokit/request-action@v2
+        uses: octokit/request-action@v2.x
         with:
           route: GET /repos/${{ github.repository }}/releases/tags/${{ github.event.inputs.tag }}
         env:
@@ -45,7 +45,7 @@ jobs:
       # Step 2: Fetch commit details for the SHA associated with the release
       - name: Get Commit Details
         id: commit_details
-        uses: octokit/request-action@v2
+        uses: octokit/request-action@v2.x
         with:
           route: GET /repos/${{ github.repository }}/commits/${{ steps.release_info.outputs.data.target_commitish }}
         env:
@@ -54,7 +54,7 @@ jobs:
       # Step 3: Fetch workflow run associated with the commit SHA
       - name: Get Workflow Run Details
         id: workflow_run
-        uses: octokit/request-action@v2
+        uses: octokit/request-action@v2.x
         with:
           route: GET /repos/${{ github.repository }}/actions/runs?per_page=100
         env:
