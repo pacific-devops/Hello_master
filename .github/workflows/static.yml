@@ -33,106 +33,64 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       # Step 2: Fetch commit details for the provided tag
-      # Step 2: Fetch commit details for the provided tag
-      # Debug Step: Print the environment directly
-      - name: Print job environment
-        run: echo "Job Environment:${{ job.deploy.environment.name }}"
-      - name: Fetch commit details associated with tag
-        id: fetch_commit
-        run: |
-          TAG=${{ github.event.inputs.tag }}
-          # Fetch the full commit SHA associated with the tag
-          COMMIT_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/git/ref/tags/$TAG" | jq -r '.object.sha')
+      # Step 1: Fetch tag reference to get the associated commit SHA
+      - name: Get Tag Reference
+        id: tag_ref
+        uses: octokit/request-action@v2
+        with:
+          route: GET /repos/${{ github.repository }}/git/ref/tags/${{ github.event.inputs.tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          # Fetch commit details using the full commit SHA
-          COMMIT_DETAILS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/commits/$COMMIT_DATA")
-
-          # Extract specific details from the commit
-          COMMIT_SHA=$(echo $COMMIT_DETAILS | jq -r '.sha') # Full SHA
-          COMMIT_MESSAGE=$(echo $COMMIT_DETAILS | jq -r '.commit.message')
-          COMMIT_AUTHOR=$(echo $COMMIT_DETAILS | jq -r '.commit.author.name')
-          COMMIT_DATE=$(echo $COMMIT_DETAILS | jq -r '.commit.author.date')
-          DEPLOY_TIME=$(date)
-
-          # Set variables for replacement in index.html
-          echo "COMMIT_SHA=$COMMIT_SHA" >> $GITHUB_ENV
-          echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
-          echo "COMMIT_AUTHOR=$COMMIT_AUTHOR" >> $GITHUB_ENV
-          echo "COMMIT_DATE=$COMMIT_DATE" >> $GITHUB_ENV
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "DEPLOY_TIME=$DEPLOY_TIME" >> $GITHUB_ENV
-          echo "ENVIRONMENT=${{ job.environment }}" >> $GITHUB_ENV
+      # Step 2: Fetch commit details for the SHA from the tag
+      - name: Get Commit Details
+        id: commit_details
+        uses: octokit/request-action@v2
+        with:
+          route: GET /repos/${{ github.repository }}/commits/${{ steps.tag_ref.outputs.data.object.sha }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Step 3: Fetch workflow run associated with the commit SHA
-      - name: Fetch workflow run associated with commit
-        id: fetch_run
-        run: |
-          # Fetch workflow runs and filter by the full commit SHA
-          RUN_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/runs?per_page=100" | jq -r \
-          --arg COMMIT_SHA "${{ env.COMMIT_SHA }}" '.workflow_runs[] | select(.head_sha == $COMMIT_SHA)')
+      - name: Get Workflow Run Details
+        id: workflow_run
+        uses: octokit/request-action@v2
+        with:
+          route: GET /repos/${{ github.repository }}/actions/runs
+          parameters:
+            per_page: 100
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          # Check if RUN_DATA is empty; provide debug info
-          if [[ -z "$RUN_DATA" ]]; then
-            echo "No matching workflow run found for commit SHA: $COMMIT_SHA" >&2
-            RUN_NUMBER="N/A"
-            RUN_STATUS="N/A"
-            RUN_CONCLUSION="N/A"
-          else
-            # Extract specific workflow run details
-            RUN_NUMBER=$(echo "$RUN_DATA" | jq -r '.run_number // "N/A"')
-            RUN_STATUS=$(echo "$RUN_DATA" | jq -r '.status // "N/A"')
-            RUN_CONCLUSION=$(echo "$RUN_DATA" | jq -r '.conclusion // "N/A"')
-
-            # Extract additional details like URLs for logs, artifacts, etc.
-            WORKFLOW_HTML_URL=$(echo "$RUN_DATA" | jq -r '.html_url // "N/A"')
-            WORKFLOW_ARTIFACTS_URL=$(echo "$RUN_DATA" | jq -r '.artifacts_url // "N/A"')
-            WORKFLOW_LOGS_URL=$(echo "$RUN_DATA" | jq -r '.logs_url // "N/A"')
-          fi
-
-          # Set workflow run variables for HTML injection
-          echo "RUN_NUMBER=$RUN_NUMBER" >> $GITHUB_ENV
-          echo "RUN_STATUS=$RUN_STATUS" >> $GITHUB_ENV
-          echo "RUN_CONCLUSION=$RUN_CONCLUSION" >> $GITHUB_ENV
-          echo "WORKFLOW_HTML_URL=$WORKFLOW_HTML_URL" >> $GITHUB_ENV
-          echo "WORKFLOW_ARTIFACTS_URL=$WORKFLOW_ARTIFACTS_URL" >> $GITHUB_ENV
-          echo "WORKFLOW_LOGS_URL=$WORKFLOW_LOGS_URL" >> $GITHUB_ENV
-
-      # Step 4: Print variables for debugging
-      - name: Print variables for debugging
-        run: |
-          echo "TAG: ${{ env.TAG }}"
-          echo "ENVIRONMENT: ${{ env.ENVIRONMENT }}"
-          echo "RUN_NUMBER: ${{ env.RUN_NUMBER }}"
-          echo "RUN_STATUS: ${{ env.RUN_STATUS }}"
-          echo "RUN_CONCLUSION: ${{ env.RUN_CONCLUSION }}"
-          echo "COMMIT_SHA: ${{ env.COMMIT_SHA }}"
-          echo "COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}"
-          echo "COMMIT_AUTHOR: ${{ env.COMMIT_AUTHOR }}"
-          echo "COMMIT_DATE: ${{ env.COMMIT_DATE }}"
-          echo "DEPLOY_TIME: ${{ env.DEPLOY_TIME }}"
-          echo "WORKFLOW_HTML_URL: ${{ env.WORKFLOW_HTML_URL }}"
-          echo "WORKFLOW_ARTIFACTS_URL: ${{ env.WORKFLOW_ARTIFACTS_URL }}"
-          echo "WORKFLOW_LOGS_URL: ${{ env.WORKFLOW_LOGS_URL }}"
-
-      # Step 5: Update index.html with deployment details
+      # Step 4: Directly Update index.html with Fetched Values
       - name: Update index.html with deployment details
         run: |
-          sed -i "s|{{ TAG }}|${{ env.TAG || 'N/A' }}|g" index.html
-          sed -i "s|{{ ENVIRONMENT }}|${{ env.ENVIRONMENT || 'N/A' }}|g" index.html
-          sed -i "s|{{ COMMIT_SHA }}|${{ env.COMMIT_SHA || 'N/A' }}|g" index.html
-          sed -i "s|{{ COMMIT_MESSAGE }}|${{ env.COMMIT_MESSAGE || 'N/A' }}|g" index.html
-          sed -i "s|{{ COMMIT_AUTHOR }}|${{ env.COMMIT_AUTHOR || 'N/A' }}|g" index.html
-          sed -i "s|{{ COMMIT_DATE }}|${{ env.COMMIT_DATE || 'N/A' }}|g" index.html
-          sed -i "s|{{ DEPLOY_TIME }}|${{ env.DEPLOY_TIME || 'N/A' }}|g" index.html
-          sed -i "s|{{ RUN_NUMBER }}|${{ env.RUN_NUMBER || 'N/A' }}|g" index.html
-          sed -i "s|{{ RUN_STATUS }}|${{ env.RUN_STATUS || 'N/A' }}|g" index.html
-          sed -i "s|{{ RUN_CONCLUSION }}|${{ env.RUN_CONCLUSION || 'N/A' }}|g" index.html
-          sed -i "s|{{ WORKFLOW_HTML_URL }}|${{ env.WORKFLOW_HTML_URL || 'N/A' }}|g" index.html
-          sed -i "s|{{ WORKFLOW_ARTIFACTS_URL }}|${{ env.WORKFLOW_ARTIFACTS_URL || 'N/A' }}|g" index.html
-          sed -i "s|{{ WORKFLOW_LOGS_URL }}|${{ env.WORKFLOW_LOGS_URL || 'N/A' }}|g" index.html
+          # Extract values directly from outputs and update placeholders in index.html
+          sed -i "s|{{ TAG }}|${{ github.event.inputs.tag }}|g" index.html
+          sed -i "s|{{ ENVIRONMENT }}|github-pages|g" index.html
+          sed -i "s|{{ COMMIT_SHA }}|${{ steps.tag_ref.outputs.data.object.sha }}|g" index.html
+          sed -i "s|{{ COMMIT_MESSAGE }}|${{ steps.commit_details.outputs.data.commit.message }}|g" index.html
+          sed -i "s|{{ COMMIT_AUTHOR }}|${{ steps.commit_details.outputs.data.commit.author.name }}|g" index.html
+          sed -i "s|{{ COMMIT_DATE }}|${{ steps.commit_details.outputs.data.commit.author.date }}|g" index.html
+          sed -i "s|{{ DEPLOY_TIME }}|$(date)|g" index.html
+
+          # Get first matching workflow run associated with the commit SHA
+          WORKFLOW_RUN=$(echo '${{ steps.workflow_run.outputs.data }}' | jq -r --arg COMMIT_SHA "${{ steps.tag_ref.outputs.data.object.sha }}" \
+            '.workflow_runs[] | select(.head_sha == $COMMIT_SHA) | @base64')
+
+          if [[ -n "$WORKFLOW_RUN" ]]; then
+            # Decode and extract workflow details
+            RUN_NUMBER=$(echo "$WORKFLOW_RUN" | base64 --decode | jq -r '.run_number')
+            RUN_STATUS=$(echo "$WORKFLOW_RUN" | base64 --decode | jq -r '.status')
+
+            # Use sed to directly update index.html with workflow run details
+            sed -i "s|{{ RUN_NUMBER }}|$RUN_NUMBER|g" index.html
+            sed -i "s|{{ RUN_STATUS }}|$RUN_STATUS|g" index.html
+          else
+            echo "No matching workflow run found for commit SHA."
+            sed -i "s|{{ RUN_NUMBER }}|N/A|g" index.html
+            sed -i "s|{{ RUN_STATUS }}|N/A|g" index.html
+          fi
       
       - name: Setup Pages
         uses: actions/configure-pages@v5
