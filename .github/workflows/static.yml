@@ -32,7 +32,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      # Step 2: Fetch commit details for the provided tag
       # Step 1: Fetch release details based on the provided tag
       - name: Get Release by Tag
         id: release_info
@@ -41,6 +40,14 @@ jobs:
           route: GET /repos/${{ github.repository }}/releases/tags/${{ github.event.inputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Print release info details
+      - name: Print Release Info
+        run: |
+          echo "Release Name: ${{ steps.release_info.outputs.data.name }}"
+          echo "Release Body: ${{ steps.release_info.outputs.data.body }}"
+          echo "Published At: ${{ steps.release_info.outputs.data.published_at }}"
+          echo "Target Commit SHA: ${{ steps.release_info.outputs.data.target_commitish }}"
 
       # Step 2: Fetch commit details for the SHA associated with the release
       - name: Get Commit Details
@@ -51,6 +58,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Print commit details
+      - name: Print Commit Details
+        run: |
+          echo "Commit SHA: ${{ steps.commit_details.outputs.data.sha }}"
+          echo "Commit Message: ${{ steps.commit_details.outputs.data.commit.message }}"
+          echo "Commit Author: ${{ steps.commit_details.outputs.data.commit.author.name }}"
+          echo "Commit Date: ${{ steps.commit_details.outputs.data.commit.author.date }}"
+
       # Step 3: Fetch workflow run associated with the commit SHA
       - name: Get Workflow Run Details
         id: workflow_run
@@ -60,7 +75,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 4: Directly Update index.html with all details
+      # Print workflow run details
+      - name: Print Workflow Run Details
+        run: |
+          echo "Workflow Run Data: ${{ steps.workflow_run.outputs.data }}"
+
+      # Step 4: Directly Update index.html with release, commit, and workflow details
       - name: Update index.html with release, commit, and workflow details
         run: |
           # Update placeholders in index.html with release information
