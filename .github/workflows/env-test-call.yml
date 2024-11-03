@@ -1,0 +1,17 @@
+name: S3_bucket test
+
+on:
+  workflow_call:
+    inputs:
+      s3_bucket:
+        description: 'S3 bucket'
+        type: string
+        required: true
+
+jobs:
+  create-path:
+    runs-on: ubuntu-latest
+    steps:
+      - name: exho workds
+        run: |
+          echo "${{inputs.s3_bucket}}"
