@@ -16,7 +16,7 @@ permissions:
   pull-requests: write
 jobs:
   call-deploy:
-    uses: ./.github/workflows/env-test-call.yaml
+    uses: ./.github/workflows/env-test-call.yml
     secrets: inherit
     with:
       s3_bucket: ${{vars.S3_MYSQL}}
