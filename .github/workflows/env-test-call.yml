@@ -15,3 +15,4 @@ jobs:
       - name: exho workds
         run: |
           echo "${{inputs.s3_bucket}}"
+          echo "${{vars.S3_MYSQL}}"
