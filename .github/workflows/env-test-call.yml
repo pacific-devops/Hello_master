@@ -7,9 +7,14 @@ on:
         description: 'S3 bucket'
         type: string
         required: true
+      environment:
+        description: 'S3 bucket'
+        type: string
+        required: true
 
 jobs:
   create-path:
+    environment: ${{ inputs.environment}}
     runs-on: ubuntu-latest
     steps:
       - name: exho workds
