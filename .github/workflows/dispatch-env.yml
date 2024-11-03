@@ -20,3 +20,4 @@ jobs:
     secrets: inherit
     with:
       s3_bucket: ${{vars.S3_MYSQL}}
+      environment: ${{inputs.environment}}
