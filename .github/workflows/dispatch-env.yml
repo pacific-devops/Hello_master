@@ -1,0 +1,22 @@
+# .github/workflows/deploy-caller.yml
+name: Deploy Caller
+
+on: 
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run tests against' 
+        type: environment 
+        required: true
+      
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+  pull-requests: write
+jobs:
+  call-deploy:
+    uses: ./.github/workflows/env-test-call.yaml
+    secrets: inherit
+    with:
+      s3_bucket: ${{vars.S3_MYSQL}}
