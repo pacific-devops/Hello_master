@@ -19,6 +19,7 @@ jobs:
       s3_file: 'qtest'
       
   create-path:
+    needs: [job_1]
     environment: ${{ inputs.environment}}
     runs-on: ubuntu-latest
     steps:
