@@ -7,10 +7,6 @@ on:
         description: 'S3 bucket'
         type: string
         required: true
-      environment:
-        description: 'S3 bucket'
-        type: string
-        required: true
     outputs:
       my-output:
         description: 'The output from the job'
@@ -18,7 +14,6 @@ on:
 
 jobs:
   create-path:
-    environment: ${{ inputs.environment}}
     runs-on: ubuntu-latest
     outputs:
       my_output: ${{ steps.set_output.outputs.my_output }}
