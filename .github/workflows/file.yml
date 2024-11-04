@@ -1,0 +1,28 @@
+name: zzFile name check
+
+on:
+  workflow_call:
+    inputs:
+      s3_file:
+        description: 'S3 bucket'
+        type: string
+        required: true
+      environment:
+        description: 'S3 bucket'
+        type: string
+        required: true
+    outputs:
+      my-output:
+        description: 'The output from the job'
+        value: ${{ jobs.create-path.outputs.my_output }}
+
+jobs:
+  create-path:
+    environment: ${{ inputs.environment}}
+    runs-on: ubuntu-latest
+    outputs:
+      my_output: ${{ steps.set_output.outputs.my_output }}
+    steps:
+    - name: Set output
+      id: set_output
+      run: echo "my_output=master_file" >> $GITHUB_OUTPUT
