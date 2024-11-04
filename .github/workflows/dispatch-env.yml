@@ -28,6 +28,7 @@ jobs:
           echo "sql =${{vars.S3_MYSQ}}" > GITHUB_OUTPUT
         
   call-deploy:
+    needs: [get-env-data]
     uses: ./.github/workflows/env-test-call.yml
     secrets: inherit
     with:
