@@ -17,7 +17,7 @@ permissions:
 jobs:
 
   get-env-data:
-    environment : ${{inputs.environments}}
+    environment : ${{inputs.environment}}
     runs-on: ubuntu-latest
     outputs:
       my-output: ${{ steps.step1.outputs.sql }}
