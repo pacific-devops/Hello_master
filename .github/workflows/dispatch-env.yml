@@ -24,8 +24,7 @@ jobs:
     steps:
       - name: Get value
         id: step1
-        run: |
-          echo "sql=${{vars.S3_MYSQL}}" >> GITHUB_OUTPUT
+        run: echo "sql=${{ vars.S3_MYSQL }}" >> $GITHUB_OUTPUT
         
   call-deploy:
     needs: [get-env-data]
