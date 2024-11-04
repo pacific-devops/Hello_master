@@ -16,7 +16,7 @@ jobs:
   job_1:
     uses: ./.github/workflows/file.yml
     with:
-      s3_bucket: 'qtest'
+      s3_file: 'qtest'
       
   create-path:
     environment: ${{ inputs.environment}}
