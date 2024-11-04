@@ -25,12 +25,12 @@ jobs:
       - name: Get value
         id: step1
         run: |
-          echo "sql=${{vars.S3_MYSQL}}" > GITHUB_OUTPUT
+          echo "sql=${{vars.S3_MYSQL}}" >> GITHUB_OUTPUT
         
   call-deploy:
     needs: [get-env-data]
     uses: ./.github/workflows/env-test-call.yml
     secrets: inherit
     with:
-      s3_bucket: ${{needs.get-env-data.outputs.my-output}}
+      s3_bucket: ${{ needs.get-env-data.outputs.my-output }}
       environment: ${{inputs.environment}}
