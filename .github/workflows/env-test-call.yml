@@ -13,11 +13,17 @@ on:
         required: true
 
 jobs:
+  job_1:
+    uses: ./.github/workflows/file.yml
+    with:
+      s3_bucket: 'qtest'
+      
   create-path:
     environment: ${{ inputs.environment}}
     runs-on: ubuntu-latest
     steps:
       - name: exho workds
         run: |
+          echo "${{needs.job_1.outputs.my-output}}"
           echo "${{inputs.s3_bucket}}"
           echo "${{vars.S3_MYSQL}}"
