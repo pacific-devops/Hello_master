@@ -27,4 +27,3 @@ jobs:
         run: |
           echo "${{needs.job_1.outputs.my-output}}"
           echo "${{inputs.s3_bucket}}"
-          echo "${{vars.S3_MYSQL}}"
